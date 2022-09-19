@@ -26,7 +26,7 @@ Simple gui example:
 public class TestGui extends PagedGui {
 
     public TestGui(Player player) {
-        super(player, 5, "Какой-то странный инвентарь");
+        super(player, 5, "Some strange inventory");
 
         draw();
         open();
@@ -47,7 +47,7 @@ Paged gui example:
 public class TestPagedGui extends PagedGui {
 
     public TestPagedGui(Player player) {
-        super(player, 5, "Какой-то страничный инвентарь");
+        super(player, 5, "Some paged inventory");
 
         draw();
         open();
