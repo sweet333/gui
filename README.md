@@ -2,12 +2,30 @@
 
 easy-to-use minecraft gui
 
-Пример обычного инвентаря
+Initialization
 
 ```java
-public class LobbySelectorGui extends PagedGui {
+public class BukkitPluginExample extends JavaPlugin {
 
-    public LobbySelectorGui(Player player) {
+    @Override
+    public void onEnable() {
+        GuiService guiService = new GuiServiceImpl();
+
+        Gui.init(this, guiService);
+        PagedGui.init(this, guiService);
+
+        getServer().getPluginManager().registerEvents(new GuiListener(guiService), this);
+    }
+}
+
+```
+
+Simple gui example:
+
+```java
+public class TestGui extends PagedGui {
+
+    public TestGui(Player player) {
         super(player, 5, "Какой-то странный инвентарь");
 
         draw();
@@ -23,12 +41,12 @@ public class LobbySelectorGui extends PagedGui {
 }
 ```
 
-Пример страничного инвентаря:
+Paged gui example:
 
 ```java
-public class LobbySelectorGui extends PagedGui {
+public class TestPagedGui extends PagedGui {
 
-    public LobbySelectorGui(Player player) {
+    public TestPagedGui(Player player) {
         super(player, 5, "Какой-то страничный инвентарь");
 
         draw();
