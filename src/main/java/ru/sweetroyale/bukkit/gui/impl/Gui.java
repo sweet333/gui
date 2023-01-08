@@ -11,36 +11,24 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitTask;
-import ru.sweetroyale.bukkit.gui.GuiService;
-import ru.sweetroyale.bukkit.gui.IGui;
 import ru.sweetroyale.bukkit.gui.GuiItem;
+import ru.sweetroyale.bukkit.gui.GuiProvider;
+import ru.sweetroyale.bukkit.gui.IGui;
 
 import java.util.function.BiConsumer;
 
 @Getter
 public abstract class Gui implements IGui {
 
-    private static GuiService guiService;
-    private static Plugin plugin;
-
-    public static void init(Plugin plugin, GuiService guiService) {
-        Gui.guiService = guiService;
-        Gui.plugin = plugin;
-    }
-
     protected final int size;
     protected final String title;
-
+    private final TIntObjectMap<GuiItem> items = TCollections.synchronizedMap(new TIntObjectHashMap<>());
     protected Inventory inventory;
     protected Player player;
     protected BukkitTask updater = null;
-
     @Setter
     protected boolean disableAction = true;
-
-    private final TIntObjectMap<GuiItem> items = TCollections.synchronizedMap(new TIntObjectHashMap<>());
 
     public Gui(@NonNull Player player, int size, String title) {
         this.player = player;
@@ -60,7 +48,7 @@ public abstract class Gui implements IGui {
 
         onOpen();
 
-        guiService.addGui(this);
+        GuiProvider.get().addGui(this);
     }
 
     @Override
@@ -70,7 +58,7 @@ public abstract class Gui implements IGui {
         }
 
         updater = Bukkit.getScheduler()
-                .runTaskTimer(plugin, this::draw, 0L, ticks);
+                .runTaskTimer(GuiProvider.get().getPlugin(), this::draw, 0L, ticks);
     }
 
     @Override

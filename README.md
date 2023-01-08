@@ -9,12 +9,8 @@ public class BukkitPluginExample extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        GuiService guiService = new GuiServiceImpl();
-
-        Gui.init(this, guiService);
-        PagedGui.init(this, guiService);
-
-        getServer().getPluginManager().registerEvents(new GuiListener(guiService), this);
+        GuiServiceImpl.registerWith(this);
+        
     }
 }
 
