@@ -1,17 +1,34 @@
 package ru.sweetroyale.bukkit.gui.impl;
 
-import ru.sweetroyale.bukkit.gui.GuiService;
-import ru.sweetroyale.bukkit.gui.IGui;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryInteractEvent;
+import org.bukkit.plugin.Plugin;
+import org.jetbrains.annotations.Nullable;
+import ru.sweetroyale.bukkit.gui.GuiProvider;
+import ru.sweetroyale.bukkit.gui.GuiService;
+import ru.sweetroyale.bukkit.gui.IGui;
+import ru.sweetroyale.bukkit.gui.listener.GuiListener;
 
-import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 
+@AllArgsConstructor
 public class GuiServiceImpl implements GuiService {
 
-    private final Map<String, IGui> inventoryMap = new HashMap<>();
+    @Getter
+    private Plugin plugin;
+    private Map<String, IGui> inventoryMap;
+
+    public static GuiService registerWith(Plugin plugin) {
+        GuiService service = new GuiServiceImpl(plugin, new HashMap<>());
+
+        GuiProvider.register(service);
+
+        plugin.getServer().getPluginManager().registerEvents(new GuiListener(service), plugin);
+        return service;
+    }
 
     @Override
     public void addGui(IGui gui) {

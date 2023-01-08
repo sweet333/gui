@@ -1,0 +1,45 @@
+plugins {
+    id 'java'
+    id 'maven-publish'
+}
+
+group 'net.clojars.suuft'
+version '1.0.4'
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        url = uri('https://hub.spigotmc.org/nexus/content/repositories/snapshots/')
+    }
+}
+
+dependencies {
+    compileOnly 'org.spigotmc:spigot-api:1.16.5-R0.1-SNAPSHOT'
+    compileOnly 'org.spigotmc:spigot:1.16.5-R0.1-SNAPSHOT'
+    compileOnly 'org.projectlombok:lombok:1.18.24'
+    implementation 'org.jetbrains:annotations:23.0.0'
+    implementation group: 'net.sf.trove4j', name: 'trove4j', version: '3.0.3'
+    annotationProcessor 'org.projectlombok:lombok:1.18.24'
+}
+
+publishing {
+    repositories {
+        maven {
+            name = "clojars"
+            url = uri("https://clojars.org/repo")
+            credentials {
+                username = clojarsUserName
+                password = clojarsDeployToken
+            }
+        }
+
+    }
+    publications {
+        gpr(MavenPublication) {
+            from(components.java)
+        }
+    }
+}

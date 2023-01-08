@@ -6,16 +6,15 @@ import gnu.trove.map.hash.TIntObjectHashMap;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
-import org.bukkit.Material;
-import org.bukkit.plugin.Plugin;
-import ru.sweetroyale.bukkit.gui.GuiService;
-import ru.sweetroyale.bukkit.gui.IGui;
-import ru.sweetroyale.bukkit.gui.GuiItem;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitTask;
+import ru.sweetroyale.bukkit.gui.GuiItem;
+import ru.sweetroyale.bukkit.gui.GuiProvider;
+import ru.sweetroyale.bukkit.gui.IGui;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -28,37 +27,24 @@ public abstract class PagedGui implements IGui {
     private static final ItemStack NEXT_PAGE_ITEM = new ItemStack(Material.ARROW);
     private static final ItemStack BACK_PAGE_ITEM = new ItemStack(Material.ARROW);
 
-    private static GuiService guiService;
-    private static Plugin plugin;
 
-    public static void init(Plugin plugin, GuiService guiService) {
-        PagedGui.guiService = guiService;
-        PagedGui.plugin = plugin;
-    }
-
-    protected final int size;
+    protected final int rows;
     protected final String title;
-
-    protected Player player;
-
-    protected int currentPage = 0;
-    protected Gui currentGui = null;
-
-    protected BukkitTask updater = null;
-
-    private boolean updated = false;
-    private long updateTicks = 0;
-
-    @Setter
-    protected boolean disableAction = true;
-
     private final TIntObjectMap<GuiItem> buttons = TCollections.synchronizedMap(new TIntObjectHashMap<>());
     private final List<GuiItem> items = new ArrayList<>();
     private final List<Integer> markup = new ArrayList<>();
+    protected Player player;
+    protected int currentPage = 0;
+    protected Gui currentGui = null;
+    protected BukkitTask updater = null;
+    @Setter
+    protected boolean disableAction = true;
+    private boolean updated = false;
+    private long updateTicks = 0;
 
-    public PagedGui(@NonNull Player player, int size, String title) {
+    public PagedGui(@NonNull Player player, int rows, String title) {
         this.player = player;
-        this.size = size * 9;
+        this.rows = rows;
         this.title = title;
 
         setPage(0);
@@ -84,7 +70,7 @@ public abstract class PagedGui implements IGui {
         removeUpdater();
 
         updater = Bukkit.getScheduler()
-                .runTaskTimer(plugin, () -> {
+                .runTaskTimer(GuiProvider.get().getPlugin(), () -> {
                     clearMarkup();
 
                     draw();
@@ -111,7 +97,7 @@ public abstract class PagedGui implements IGui {
     public void setPage(int pageId) {
         currentPage = pageId;
 
-        currentGui = new Gui(player, size / 9, title + (currentPage > 0 ? " ▸ " + (currentPage + 1) : "")) {
+        currentGui = new Gui(player, rows, title + (currentPage > 0 ? " ▸ " + (currentPage + 1) : "")) {
 
             @Override
             public void draw() {
@@ -230,15 +216,40 @@ public abstract class PagedGui implements IGui {
         this.markup.addAll(Arrays.asList(slots));
     }
 
+    public void addToMarkup(Integer... slots) {
+        this.markup.addAll(Arrays.asList(slots));
+    }
+
     public void setMarkup(List<Integer> slots) {
         this.markup.clear();
         this.markup.addAll(slots);
     }
 
     public void setDefaultMarkupItems() {
-        setMarkup(10, 11, 12, 13, 14, 15, 16,
-                19, 20, 21, 22, 23, 24, 25,
-                28, 29, 30, 31, 32, 33, 34);
+        for (int row = 1; row <= rows - 2; row++) {
+            addToMarkup(row * 9 + 1);
+            addToMarkup(row * 9 + 2);
+            addToMarkup(row * 9 + 3);
+            addToMarkup(row * 9 + 4);
+            addToMarkup(row * 9 + 5);
+            addToMarkup(row * 9 + 6);
+            addToMarkup(row * 9 + 7);
+        }
+    }
+
+    public void setSmallMarkupItems() {
+        if (rows <= 3) {
+            setDefaultMarkupItems();
+            return;
+        }
+
+        for (int row = 2; row <= rows - 3; row++) {
+            addToMarkup(row * 9 + 2);
+            addToMarkup(row * 9 + 3);
+            addToMarkup(row * 9 + 4);
+            addToMarkup(row * 9 + 5);
+            addToMarkup(row * 9 + 6);
+        }
     }
 
     public void drawMarkup() {

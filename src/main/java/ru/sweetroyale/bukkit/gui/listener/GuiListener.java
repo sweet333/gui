@@ -1,8 +1,6 @@
 package ru.sweetroyale.bukkit.gui.listener;
 
-import ru.sweetroyale.bukkit.gui.GuiService;
-import ru.sweetroyale.bukkit.gui.IGui;
-import ru.sweetroyale.bukkit.gui.GuiItem;
+import lombok.RequiredArgsConstructor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -11,14 +9,14 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.inventory.Inventory;
+import ru.sweetroyale.bukkit.gui.GuiItem;
+import ru.sweetroyale.bukkit.gui.GuiService;
+import ru.sweetroyale.bukkit.gui.IGui;
 
+@RequiredArgsConstructor
 public class GuiListener implements Listener {
 
     private final GuiService guiService;
-
-    public GuiListener(GuiService guiService) {
-        this.guiService = guiService;
-    }
 
     @EventHandler(priority = EventPriority.MONITOR)
     private void onInventoryClick(InventoryClickEvent event) {
