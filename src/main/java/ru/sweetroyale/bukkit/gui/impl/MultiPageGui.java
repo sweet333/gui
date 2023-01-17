@@ -6,11 +6,8 @@ import gnu.trove.map.hash.TIntObjectHashMap;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
-import org.bukkit.Material;
 import org.bukkit.plugin.Plugin;
-import ru.sweetroyale.bukkit.gui.GuiService;
-import ru.sweetroyale.bukkit.gui.IGui;
-import ru.sweetroyale.bukkit.gui.GuiItem;
+import ru.sweetroyale.bukkit.gui.*;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
@@ -20,32 +17,27 @@ import org.bukkit.scheduler.BukkitTask;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.function.BiConsumer;
 
 @Getter
-public abstract class PagedGui implements IGui {
+public class MultiPageGui implements IGui {
 
-    private static final ItemStack NEXT_PAGE_ITEM = new ItemStack(Material.ARROW);
-    private static final ItemStack BACK_PAGE_ITEM = new ItemStack(Material.ARROW);
-
-    private static GuiService guiService;
-    private static Plugin plugin;
-
-    public static void init(Plugin plugin, GuiService guiService) {
-        PagedGui.guiService = guiService;
-        PagedGui.plugin = plugin;
-    }
-
+    private final ItemStack nextPageItem;
+    private final ItemStack backPageItem;
+    @Setter
+    protected GuiDrawer guiDrawer;
+    @Setter
+    protected GuiInitializer guiInitializer;
+    private final GuiService guiService;
+    private final Map<String, IGui> inventoryMap;
+    private final Plugin plugin;
     protected final int size;
     protected final String title;
-
     protected Player player;
-
     protected int currentPage = 0;
-    protected Gui currentGui = null;
-
+    protected OnePageGui currentGui = null;
     protected BukkitTask updater = null;
-
     private boolean updated = false;
     private long updateTicks = 0;
 
@@ -56,10 +48,17 @@ public abstract class PagedGui implements IGui {
     private final List<GuiItem> items = new ArrayList<>();
     private final List<Integer> markup = new ArrayList<>();
 
-    public PagedGui(@NonNull Player player, int size, String title) {
+    public MultiPageGui(ItemStack nextPageItem, ItemStack backPageItem, Player player, int size, String title, GuiDrawer guiDrawer, GuiInitializer guiInitializer, GuiService guiService, Map<String, IGui> inventoryMap, Plugin plugin) {
+        this.nextPageItem = nextPageItem;
+        this.backPageItem = backPageItem;
+        this.guiDrawer = guiDrawer;
+        this.guiInitializer = guiInitializer;
         this.player = player;
         this.size = size * 9;
         this.title = title;
+        this.guiService = guiService;
+        this.inventoryMap = inventoryMap;
+        this.plugin = plugin;
 
         setPage(0);
     }
@@ -96,7 +95,7 @@ public abstract class PagedGui implements IGui {
 
                         onFirstUpdate();
                     }
-                }, updateTicks, updateTicks);
+                }, 0L, updateTicks);
     }
 
     @Override
@@ -111,45 +110,22 @@ public abstract class PagedGui implements IGui {
     public void setPage(int pageId) {
         currentPage = pageId;
 
-        currentGui = new Gui(player, size / 9, title + (currentPage > 0 ? " ▸ " + (currentPage + 1) : "")) {
-
-            @Override
-            public void draw() {
-                int i = 0;
-
-                if (hasBackPage())
-                    setItem(size - 6, BACK_PAGE_ITEM, (player1, clickType) -> {
-                        setPage(currentPage - 1);
-                        PagedGui.this.open();
-                    });
-
-
-                if (hasNextPage())
-                    setItem(size - 4, NEXT_PAGE_ITEM, (player1, clickType) -> {
-                        setPage(currentPage + 1);
-                        PagedGui.this.open();
-                    });
-
-                for (GuiItem guiItem : getItemsByPage(currentPage)) {
-                    setItem(markup.get(i), guiItem);
-                    i++;
-                }
-            }
+        currentGui = new OnePageGui(guiService, inventoryMap, plugin, player, size / 9, title + (currentPage > 0 ? " ▸ " + (currentPage + 1) : ""), guiDrawer, guiInitializer) {
 
             @Override
             public void onOpen() {
                 if (updateTicks > 0) {
-                    PagedGui.this.setUpdater(updateTicks);
+                    MultiPageGui.this.setUpdater(updateTicks);
                 }
             }
 
             @Override
             public void onClose() {
-                PagedGui.this.removeUpdater();
+                MultiPageGui.this.removeUpdater();
             }
         };
 
-        currentGui.draw();
+        currentGui.guiDrawer.draw(this);
     }
 
     public void open() {
@@ -242,7 +218,7 @@ public abstract class PagedGui implements IGui {
     }
 
     public void drawMarkup() {
-        currentGui.draw();
+        currentGui.guiDrawer.draw(this);
     }
 
     public void clearMarkup() {
@@ -262,5 +238,7 @@ public abstract class PagedGui implements IGui {
 
     }
 
-    public abstract void draw();
+    public void draw() {
+
+    }
 }

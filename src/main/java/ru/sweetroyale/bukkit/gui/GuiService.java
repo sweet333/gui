@@ -1,20 +1,29 @@
 package ru.sweetroyale.bukkit.gui;
 
 import org.bukkit.entity.Player;
-import org.bukkit.event.inventory.InventoryInteractEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.Plugin;
+import ru.sweetroyale.bukkit.gui.impl.MultiPageGui;
+import ru.sweetroyale.bukkit.gui.impl.OnePageGui;
 
-import org.jetbrains.annotations.Nullable;
+import java.util.Map;
 
 public interface GuiService {
+    MultiPageGui createMultiPageGui(Player player, String title, int size, GuiDrawer guiDrawer, GuiInitializer guiInitializer);
 
-    void addGui(IGui gui);
+    MultiPageGui createMultiPageGui(Player player, String title, int size, GuiDrawer guiDrawer);
 
-    void removeGui(IGui gui);
+    OnePageGui createOnePageGui(Player player, String title, int size, GuiDrawer guiDrawer, GuiInitializer guiInitializer);
 
-    @Nullable
-    IGui getGui(InventoryInteractEvent event);
+    OnePageGui createOnePageGui(Player player, String title, int size, GuiDrawer guiDrawer);
 
-    @Nullable
-    IGui getGui(Player player);
+    Map<String, IGui> getInventoryMap();
 
+    ItemStack getNextPageItem();
+
+    ItemStack getBackPageItem();
+
+    void setNextPageItem(ItemStack nextPageItem);
+
+    void setBackPageItem(ItemStack backPageItem);
 }

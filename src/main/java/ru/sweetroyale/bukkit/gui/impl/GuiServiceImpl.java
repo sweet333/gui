@@ -1,43 +1,58 @@
 package ru.sweetroyale.bukkit.gui.impl;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import org.bukkit.Material;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.Plugin;
+import ru.sweetroyale.bukkit.gui.GuiDrawer;
+import ru.sweetroyale.bukkit.gui.GuiInitializer;
 import ru.sweetroyale.bukkit.gui.GuiService;
 import ru.sweetroyale.bukkit.gui.IGui;
-import org.bukkit.entity.Player;
-import org.bukkit.event.inventory.InventoryInteractEvent;
 
-import javax.annotation.Nullable;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
+@Getter
+@Setter
+@RequiredArgsConstructor
+@AllArgsConstructor
 public class GuiServiceImpl implements GuiService {
 
-    private final Map<String, IGui> inventoryMap = new HashMap<>();
+    private final Map<String, IGui> inventoryMap = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+    private final Plugin plugin;
+    private ItemStack nextPageItem = new ItemStack(Material.ARROW);
+    private ItemStack backPageItem = new ItemStack(Material.ARROW);
 
     @Override
-    public void addGui(IGui gui) {
-        inventoryMap.put(gui.getPlayer().getName(), gui);
+    public MultiPageGui createMultiPageGui(Player player, String title, int size, GuiDrawer guiDrawer, GuiInitializer guiInitializer) {
+        return new MultiPageGui(backPageItem, nextPageItem, player, size, title, guiDrawer, guiInitializer, this, inventoryMap, plugin);
     }
 
     @Override
-    public void removeGui(IGui gui) {
-        inventoryMap.remove(gui.getPlayer().getName());
+    public MultiPageGui createMultiPageGui(Player player, String title, int size, GuiDrawer guiDrawer) {
+        return new MultiPageGui(backPageItem, nextPageItem, player, size, title, guiDrawer, gui -> {
+            MultiPageGui pagedGui = (MultiPageGui) gui;
+            pagedGui.setDefaultMarkupItems();
+
+            gui.getGuiDrawer().draw(gui);
+            gui.open();
+        }, this, inventoryMap, plugin);
     }
 
-    @Nullable
     @Override
-    public IGui getGui(InventoryInteractEvent event) {
-        if (!(event.getWhoClicked() instanceof Player)) {
-            event.setCancelled(true);
-            return null;
-        }
-
-        return inventoryMap.get(event.getWhoClicked().getName());
+    public OnePageGui createOnePageGui(Player player, String title, int size, GuiDrawer guiDrawer, GuiInitializer guiInitializer) {
+        return new OnePageGui(this, inventoryMap, plugin, player, size, title, guiDrawer, guiInitializer);
     }
 
-    @Nullable
     @Override
-    public IGui getGui(Player player) {
-        return inventoryMap.get(player.getName());
+    public OnePageGui createOnePageGui(Player player, String title, int size, GuiDrawer guiDrawer) {
+        return new OnePageGui(this, inventoryMap, plugin, player, size, title, guiDrawer, gui -> {
+            gui.getGuiDrawer().draw(gui);
+            gui.open();
+        });
     }
-
 }

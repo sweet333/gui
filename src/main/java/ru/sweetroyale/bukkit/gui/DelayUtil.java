@@ -1,4 +1,4 @@
-package ru.sweetroyale.bukkit.gui.listener;
+package ru.sweetroyale.bukkit.gui;
 
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;

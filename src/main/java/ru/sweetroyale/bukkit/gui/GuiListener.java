@@ -1,8 +1,5 @@
-package ru.sweetroyale.bukkit.gui.listener;
+package ru.sweetroyale.bukkit.gui;
 
-import ru.sweetroyale.bukkit.gui.GuiService;
-import ru.sweetroyale.bukkit.gui.IGui;
-import ru.sweetroyale.bukkit.gui.GuiItem;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -12,19 +9,20 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.inventory.Inventory;
 
-public class GuiListener implements Listener {
+import java.util.Map;
 
-    private final GuiService guiService;
+class GuiListener implements Listener {
 
-    public GuiListener(GuiService guiService) {
-        this.guiService = guiService;
+    private final Map<String, IGui> inventoryMap;
+
+    public GuiListener(Map<String, IGui> inventoryMap) {
+        this.inventoryMap = inventoryMap;
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
     private void onInventoryClick(InventoryClickEvent event) {
         Player player = (Player) event.getWhoClicked();
-
-        IGui gui = guiService.getGui(event);
+        IGui gui = inventoryMap.get(player.getName());
 
         if (gui == null) {
             return;
@@ -61,13 +59,14 @@ public class GuiListener implements Listener {
 
     @EventHandler
     private void onInventoryDrag(InventoryDragEvent event) {
-        IGui gui = guiService.getGui(event);
+        Player player = (Player) event.getWhoClicked();
+        IGui gui = inventoryMap.get(player.getName());
 
         if (gui == null) {
             return;
         }
 
-        if (!event.getWhoClicked().getName().equalsIgnoreCase(gui.getPlayer().getName())) {
+        if (!player.getName().equalsIgnoreCase(gui.getPlayer().getName())) {
             return;
         }
 
@@ -86,13 +85,13 @@ public class GuiListener implements Listener {
     private void onInventoryClose(InventoryCloseEvent e) {
         Player player = (Player) e.getPlayer();
 
-        IGui gui = guiService.getGui(player);
+        IGui gui = inventoryMap.get(player.getName());
 
         if (gui == null) {
             return;
         }
 
-        guiService.removeGui(gui);
+        inventoryMap.remove(player.getName());
 
         gui.removeUpdater();
         gui.onClose();

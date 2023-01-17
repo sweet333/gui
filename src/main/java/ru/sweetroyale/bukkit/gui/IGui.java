@@ -5,6 +5,14 @@ import org.bukkit.entity.Player;
 
 public interface IGui {
 
+    GuiDrawer getGuiDrawer();
+
+    GuiInitializer getGuiInitializer();
+
+    void setGuiDrawer(GuiDrawer guiDrawer);
+
+    void setGuiInitializer(GuiInitializer guiInitializer);
+
     void onClose();
 
     void clearInventory();
@@ -25,4 +33,5 @@ public interface IGui {
 
     TIntObjectMap<GuiItem> getItems();
 
+    void open();
 }

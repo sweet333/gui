@@ -13,26 +13,23 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitTask;
-import ru.sweetroyale.bukkit.gui.GuiService;
-import ru.sweetroyale.bukkit.gui.IGui;
-import ru.sweetroyale.bukkit.gui.GuiItem;
+import ru.sweetroyale.bukkit.gui.*;
 
+import java.util.Map;
 import java.util.function.BiConsumer;
 
 @Getter
-public abstract class Gui implements IGui {
+public class OnePageGui implements IGui {
 
-    private static GuiService guiService;
-    private static Plugin plugin;
-
-    public static void init(Plugin plugin, GuiService guiService) {
-        Gui.guiService = guiService;
-        Gui.plugin = plugin;
-    }
-
+    private final GuiService guiService;
+    private final Map<String, IGui> inventoryMap;
+    private final Plugin plugin;
     protected final int size;
     protected final String title;
-
+    @Setter
+    protected GuiDrawer guiDrawer;
+    @Setter
+    protected GuiInitializer guiInitializer;
     protected Inventory inventory;
     protected Player player;
     protected BukkitTask updater = null;
@@ -42,10 +39,15 @@ public abstract class Gui implements IGui {
 
     private final TIntObjectMap<GuiItem> items = TCollections.synchronizedMap(new TIntObjectHashMap<>());
 
-    public Gui(@NonNull Player player, int size, String title) {
+    public OnePageGui(GuiService guiService, Map<String, IGui> inventoryMap, Plugin plugin, @NonNull Player player, int size, String title, GuiDrawer guiDrawer, GuiInitializer guiInitializer) {
+        this.guiService = guiService;
+        this.inventoryMap = inventoryMap;
+        this.plugin = plugin;
         this.player = player;
         this.size = size * 9;
         this.title = title;
+        this.guiDrawer = guiDrawer;
+        this.guiInitializer = guiInitializer;
         this.inventory = Bukkit.createInventory(player, this.size, title);
     }
 
@@ -60,7 +62,7 @@ public abstract class Gui implements IGui {
 
         onOpen();
 
-        guiService.addGui(this);
+        inventoryMap.put(player.getName(), this);
     }
 
     @Override
@@ -70,7 +72,7 @@ public abstract class Gui implements IGui {
         }
 
         updater = Bukkit.getScheduler()
-                .runTaskTimer(plugin, this::draw, 0L, ticks);
+                .runTaskTimer(plugin, () -> this.guiDrawer.draw(this), 0L, ticks);
     }
 
     @Override
@@ -141,8 +143,6 @@ public abstract class Gui implements IGui {
     protected int toSlot(int x, int y) {
         return 9 * y + x - 10;
     }
-
-    public abstract void draw();
 
     public void onClose() {
 
